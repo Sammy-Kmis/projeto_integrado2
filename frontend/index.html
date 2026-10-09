@@ -39,20 +39,19 @@
           <h2>Bem-vindo à portaria</h2>
           <p class="texto-suave">Entre para acompanhar a ocupação e registrar os acessos.</p>
           <label for="usuario">Usuário</label>
-          <input id="usuario" type="text" autocomplete="username" maxlength="60" required placeholder="Seu usuário">
+          <input id="usuario" type="text" autocomplete="username" maxlength="50" required placeholder="Seu usuário">
           <label for="senha">Senha</label>
           <div class="campo-senha">
-            <input id="senha" type="password" autocomplete="current-password" maxlength="100" required placeholder="Sua senha">
+            <input id="senha" type="password" autocomplete="current-password" maxlength="128" required placeholder="Sua senha">
             <button id="mostrarSenha" type="button" class="botao-texto" aria-label="Mostrar senha" aria-pressed="false">Mostrar</button>
           </div>
           <p id="erroLogin" class="erro-formulario" role="alert"></p>
           <button id="btnEntrar" class="botao primario largura-total" type="submit">Entrar no sistema <span aria-hidden="true">→</span>
           </button>
           <div class="acesso-demo">
-            <strong>Demonstração do frontend</strong>
-            <p>Usuário <code>admin</code> · Senha <code>1234</code>
-            </p>
-            <small>Use dados fictícios. Esta versão não está conectada a uma cancela.</small>
+            <strong>Acesso integrado ao servidor</strong>
+            <p>Use o login e a senha do seu cadastro de operador.</p>
+            <small>Login e cadastro de pessoas e veículos usam o PostgreSQL. As movimentações do painel ainda são locais.</small>
           </div>
         </form>
       </div>
@@ -85,13 +84,13 @@
             <span aria-hidden="true">⚙</span> Capacidade</button>
         </nav>
         <div class="lateral-info">
-          <span class="ponto"></span> Operação local<small>Ambiente de demonstração</small>
+          <span class="ponto"></span> Login e cadastros integrados<small>Movimentações ainda locais</small>
         </div>
         <div class="operador">
           <span class="avatar">OP</span>
           <div>
-            <strong>Operador</strong>
-            <small>Portaria universitária</small>
+            <strong id="nomeOperador">Operador</strong>
+            <small id="loginOperador"></small>
           </div>
           <button id="btnSair" class="sair" type="button" aria-label="Sair do sistema">↗</button>
         </div>
@@ -100,11 +99,12 @@
         <header class="cabecalho">
           <span>CONTROLE DE ACESSO</span>
           <div>
-            <span class="etiqueta demo">Demonstração</span>
+            <span class="etiqueta demo">Integração parcial</span>
             <time id="dataAtual"></time>
           </div>
         </header>
         <main id="conteudo" tabindex="-1">
+          <div class="aviso-contexto" role="note"><strong>Login e Pessoas e veículos conectados ao PostgreSQL.</strong> Capacidade, entradas, saídas e relatórios ainda são locais e não usam os cadastros do banco. Não há acionamento de cancela.</div>
           <div id="avisoMigracao" class="aviso-contexto" role="status" hidden></div>
           <section id="painel" class="pagina" aria-labelledby="tituloPainel">
             <div class="titulo-pagina">
@@ -269,9 +269,7 @@
                 <h1 id="tituloRelatorios">Fluxo por dia da semana</h1>
                 <p>Compare as entradas e os picos de ocupação dos dias completos conferidos.</p>
               </div>
-              <button id="btnExemplo" class="botao secundario" type="button" aria-pressed="false">Ver exemplo fictício</button>
             </div>
-            <div id="avisoExemplo" class="aviso-contexto" role="status" hidden>EXEMPLO FICTÍCIO: estes gráficos usam dados de demonstração separados do seu histórico.</div>
             <section class="painel-superficie">
               <div class="barra-tabela">
                 <div>
@@ -361,16 +359,18 @@
               <div>
                 <p class="sobretitulo">IDENTIFICAÇÃO DOS VEÍCULOS</p>
                 <h1 id="tituloCadastros">Pessoas e veículos</h1>
-                <p>Um funcionário pode ter várias placas no mesmo cadastro.</p>
+                <p>Uma pessoa pode ter várias placas. Os cadastros desta seção são salvos no PostgreSQL.</p>
               </div>
               <button id="btnNovoCadastro" class="botao primario" type="button">＋ Cadastrar pessoa</button>
+              <button id="btnAtualizarCadastros" class="botao secundario" type="button">Atualizar lista</button>
             </div>
+            <p id="erroCadastros" class="erro-formulario" role="alert" hidden></p>
             <div class="resumo-cadastros" aria-label="Resumo dos cadastros">
               <article><span>Pessoas ativas</span><strong id="pessoasAtivas">0</strong></article>
               <article><span>Veículos vinculados ativos</span><strong id="veiculosCadastrados">0</strong></article>
               <article><span>Pessoas inativas</span><strong id="pessoasInativas">0</strong></article>
             </div>
-            <p class="aviso-cadastro">Cadastrar placas não ocupa lugares. Cada entrada registrada consome uma unidade da capacidade. A remoção da pessoa inativa também seus veículos vinculados e mantém o histórico.</p>
+            <p class="aviso-cadastro">Cadastrar placas não registra entrada. Inativar uma pessoa inativa todos os veículos vinculados e preserva o histórico. O registro de entradas e saídas no banco será integrado na próxima etapa.</p>
             <section class="painel-superficie">
               <div class="barra-tabela">
                 <div>
@@ -431,7 +431,7 @@
           </section>
           <footer class="rodape">
             <span>Estacionamento universitário · Revisão de fluxo 29/09/2026</span>
-            <span>Horários de Brasília · <span id="estadoSalvamento">Dados locais</span>
+            <span>Horários de Brasília · <span id="estadoSalvamento">Dados do painel locais</span>
             </span>
           </footer>
         </main>
@@ -477,7 +477,7 @@
             <div class="form-grid">
               <div class="campo-amplo">
                 <label for="nomeCondutor">Nome completo *</label>
-                <input id="nomeCondutor" type="text" required minlength="2" maxlength="80" autocomplete="off">
+                <input id="nomeCondutor" type="text" required minlength="2" maxlength="100" autocomplete="off">
               </div>
               <div>
                 <label for="cargoCondutor">Vínculo *</label>
@@ -490,7 +490,7 @@
                 </select>
               </div>
               <div>
-                <label for="cpfCondutor">CPF <span class="opcional">opcional na demonstração</span>
+                <label for="cpfCondutor">CPF <span class="opcional">opcional</span>
                 </label>
                 <input id="cpfCondutor" type="text" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" autocomplete="off">
               </div>
