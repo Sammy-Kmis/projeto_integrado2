@@ -51,18 +51,11 @@
           <div class="acesso-demo">
             <strong>Acesso integrado ao servidor</strong>
             <p>Use o login e a senha do seu cadastro de operador.</p>
-            <small>Login e cadastro de pessoas e veículos usam o PostgreSQL. As movimentações do painel ainda são locais.</small>
+            <small>Acesse com seu cadastro de operador para registrar e consultar movimentações.</small>
           </div>
         </form>
       </div>
     </section>
-    <div id="problemaDados" class="alerta-dados" role="alert" hidden>
-      <p id="mensagemDados"></p>
-      <div class="acoes">
-        <button id="btnBackup" class="botao secundario" type="button">Baixar cópia dos dados</button>
-        <button id="btnRestaurar" class="botao perigo" type="button">Restaurar demonstração</button>
-      </div>
-    </div>
     <div id="sistema" class="sistema" hidden>
       <aside class="barra-lateral">
         <a class="marca" id="marcaPainel" href="#painel">
@@ -84,7 +77,7 @@
             <span aria-hidden="true">⚙</span> Capacidade</button>
         </nav>
         <div class="lateral-info">
-          <span class="ponto"></span> Login e cadastros integrados<small>Movimentações ainda locais</small>
+          <span class="ponto"></span> Sistema integrado<small>Dados salvos no PostgreSQL</small>
         </div>
         <div class="operador">
           <span class="avatar">OP</span>
@@ -99,12 +92,13 @@
         <header class="cabecalho">
           <span>CONTROLE DE ACESSO</span>
           <div>
-            <span class="etiqueta demo">Integração parcial</span>
+            <span class="etiqueta demo">Controle de acesso</span>
             <time id="dataAtual"></time>
           </div>
         </header>
         <main id="conteudo" tabindex="-1">
-          <div class="aviso-contexto" role="note"><strong>Login e Pessoas e veículos conectados ao PostgreSQL.</strong> Capacidade, entradas, saídas e relatórios ainda são locais e não usam os cadastros do banco. Não há acionamento de cancela.</div>
+          <div class="aviso-contexto" role="note">Controle de acesso e histórico do estacionamento. <button id="btnAtualizarPainel" class="botao secundario pequeno" type="button">Atualizar painel</button></div>
+          <p id="erroPainel" class="erro-formulario" role="alert" hidden></p>
           <div id="avisoMigracao" class="aviso-contexto" role="status" hidden></div>
           <section id="painel" class="pagina" aria-labelledby="tituloPainel">
             <div class="titulo-pagina">
@@ -121,7 +115,7 @@
                   <h2>Capacidade total</h2>
                   <span class="mini-icone" aria-hidden="true">P</span>
                 </div>
-                <strong id="total">12</strong>
+                <strong id="total">—</strong>
                 <p>Limite de veículos simultâneos</p>
               </article>
               <article class="card">
@@ -137,7 +131,7 @@
                   <h2>Lugares disponíveis</h2>
                   <span class="mini-icone verde" aria-hidden="true">✓</span>
                 </div>
-                <strong id="livres">12</strong>
+                <strong id="livres">—</strong>
                 <p>Até atingir o limite total</p>
               </article>
               <article class="card">
@@ -158,20 +152,20 @@
                 <span id="statusLotacao" class="etiqueta verde">Disponível</span>
               </div>
               <div class="ocupacao-corpo">
-                <div id="graficoOcupacao" class="anel-ocupacao" role="img" aria-label="Ocupação de zero por cento">
+                <div id="graficoOcupacao" class="anel-ocupacao" role="img" aria-label="Aguardando contagem">
                   <div>
-                    <strong id="percentualOcupacao">0%</strong>
-                    <span>de ocupação</span>
+                    <strong id="percentualOcupacao">—</strong>
+                    <span>vagas livres</span>
                   </div>
                 </div>
                 <div class="ocupacao-texto">
                   <h3 id="tituloDisponibilidade">Há vagas disponíveis</h3>
                   <p id="descricaoDisponibilidade"></p>
                   <label for="barraOcupacao" class="sr-only">Ocupação atual</label>
-                  <progress id="barraOcupacao" max="12" value="0"></progress>
+                  <progress id="barraOcupacao" max="50"></progress>
                   <p id="regraAlerta" class="texto-ajuda"></p>
                   <div id="estadoCancela" class="estado-cancela" role="status">Entrada disponível para registro</div>
-                  <small>A autorização é demonstrativa. O comando de uma cancela real depende da API e do equipamento.</small>
+                  <small>A entrada é validada pelo sistema. Não há acionamento de cancela física nesta versão.</small>
                 </div>
               </div>
             </section>
@@ -217,7 +211,7 @@
                 <h1 id="tituloHistorico">Entradas e saídas</h1>
                 <p>Histórico de movimentações, sem vinculação a vagas individuais.</p>
               </div>
-              <button id="btnLiberar" class="botao perigo-suave" type="button">Registrar saída de todos</button>
+              <button id="btnLiberar" class="botao perigo-suave" type="button" hidden>Registrar saída de todos</button>
             </div>
             <section class="painel-superficie">
               <div class="barra-tabela filtros-historico">
@@ -370,7 +364,7 @@
               <article><span>Veículos vinculados ativos</span><strong id="veiculosCadastrados">0</strong></article>
               <article><span>Pessoas inativas</span><strong id="pessoasInativas">0</strong></article>
             </div>
-            <p class="aviso-cadastro">Cadastrar placas não registra entrada. Inativar uma pessoa inativa todos os veículos vinculados e preserva o histórico. O registro de entradas e saídas no banco será integrado na próxima etapa.</p>
+            <p class="aviso-cadastro">Cadastrar placas não registra entrada. Inativar uma pessoa inativa todos os veículos vinculados e preserva o histórico. Registre as entradas e saídas pela Visão geral.</p>
             <section class="painel-superficie">
               <div class="barra-tabela">
                 <div>
@@ -419,19 +413,19 @@
                     <input id="capacidadeTotal" type="number" min="1" max="10000" step="1" required>
                   </div>
                   <div>
-                    <label for="limiarAlerta">Iniciar alerta a partir de (%)</label>
-                    <input id="limiarAlerta" type="number" min="1" max="99" step="1" required>
+                    <label for="limiarAlerta">Aviso de quase cheio</label>
+                    <output id="limiarAlerta"></output>
                   </div>
                 </div>
-                <p class="texto-ajuda">O exemplo inicial usa 12 vagas e alerta a partir de 80%. Ajuste a capacidade ao valor confirmado pela faculdade. O limite não pode ficar abaixo dos veículos presentes.</p>
+                <p class="texto-ajuda">A capacidade vem do banco. O limite não pode ficar abaixo dos veículos presentes. O aviso de quase cheio se ajusta à capacidade definida.</p>
                 <p id="erroConfiguracao" class="erro-formulario" role="alert"></p>
                 <button class="botao primario" type="submit">Salvar capacidade</button>
               </form>
             </section>
           </section>
           <footer class="rodape">
-            <span>Estacionamento universitário · Revisão de fluxo 29/09/2026</span>
-            <span>Horários de Brasília · <span id="estadoSalvamento">Dados do painel locais</span>
+            <span>Estacionamento universitário · Controle de fluxo</span>
+            <span>Horários de Brasília · <span id="estadoSalvamento">Consultando servidor</span>
             </span>
           </footer>
         </main>
@@ -449,9 +443,9 @@
         <div class="modal-conteudo">
           <label for="placaEntrada">Placa do veículo *</label>
           <input id="placaEntrada" class="placa-input" type="text" required maxlength="9" placeholder="ABC-1234 ou ABC1D23" autocomplete="off" aria-describedby="autorizacaoEntrada">
-          <label for="nomeEntrada" class="label-espacado">Identificação do condutor <span class="opcional">opcional</span>
+          <label for="nomeEntrada" class="label-espacado">Identificação do condutor <span class="opcional">preenchida pelo cadastro ou informada na entrada</span>
           </label>
-          <input id="nomeEntrada" type="text" maxlength="80" placeholder="Nome para identificar esta entrada" autocomplete="off">
+          <input id="nomeEntrada" type="text" maxlength="100" placeholder="Obrigatório para veículo sem cadastro" autocomplete="off">
           <div id="autorizacaoEntrada" class="mensagem-entrada" role="status" aria-live="polite"></div>
           <p class="texto-ajuda">O registro ocupa uma unidade da capacidade. O motorista estaciona no espaço livre que escolher.</p>
           <p id="erroEntrada" class="erro-formulario" role="alert"></p>

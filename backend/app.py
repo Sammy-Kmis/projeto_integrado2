@@ -10,11 +10,13 @@ from werkzeug.security import check_password_hash
 
 from db import conectar  # db.py também carrega o arquivo backend/.env.
 from cadastros import cadastros_bp
+from movimentacoes import movimentacoes_bp
 
 PASTA_FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
 app = Flask(__name__, static_folder=None)
 app.json.ensure_ascii = False
 app.register_blueprint(cadastros_bp)
+app.register_blueprint(movimentacoes_bp)
 chave = os.environ.get("SECRET_KEY")
 if not chave or len(chave) < 32:
     raise RuntimeError("Configure SECRET_KEY no arquivo backend/.env (mínimo de 32 caracteres).")
