@@ -169,5 +169,8 @@ def conferir_dia():
         if not cursor.fetchone()[0]:
             raise ErroCadastro("Escolha um dia completo após o início do monitoramento e anterior a hoje.")
         cursor.execute("""INSERT INTO dia_conferido(data, id_operador)
-                          VALUES (%s, %s) ON CONFLICT (data) DO NOTHING""", (valor, session["id_operador"]))
+                          VALUES (%s, %s) ON CONFLICT (data) DO NOTHING
+                          RETURNING data""", (valor, session["id_operador"]))
+        if cursor.fetchone() is None:
+            raise ErroCadastro("Este dia já foi conferido. Atualize o painel.", 409)
     return jsonify(mensagem="Dia conferido e salvo no PostgreSQL.")

@@ -275,16 +275,22 @@ if (typeof document !== "undefined") (() => {
     if (!logado || !dadosProntos) throw new Error("Atualize o painel antes de continuar.");
     if (salvandoMovimento) throw new Error("Aguarde a operação em andamento.");
     salvandoMovimento = true; versaoPainel++;
+    let resposta;
     try {
-      const resposta = await api(caminho, dados, metodo);
-      const atualizado = await carregarPainel();
-      if (!atualizado && logado) notificar("Operação salva. Atualize o painel para consultar o resultado.", true);
-      carregarCadastros();
-      return resposta;
+      resposta = await api(caminho, dados, metodo);
     } catch (erro) {
+      // Falhas de rede podem ocorrer depois da gravação: nunca reenvie automaticamente.
       await carregarPainel();
       throw new Error(`${erro.message} Confira o histórico antes de repetir a operação.`);
-    } finally { salvandoMovimento = false; if ($("entradaDialog").open) atualizarEntrada(); }
+    } finally {
+      salvandoMovimento = false;
+    }
+    // A operação já foi confirmada. Falhar ao atualizar não significa falhar ao salvar.
+    const atualizado = await carregarPainel();
+    if (!atualizado && logado) notificar("Operação salva, mas não foi possível atualizar o painel. Atualize manualmente.", true);
+    carregarCadastros();
+    if ($("entradaDialog").open) atualizarEntrada();
+    return resposta;
   }
   function notificar(msg, erro = false) { clearTimeout(timer); $("notificacao").textContent = msg; $("notificacao").classList.toggle("erro", erro); $("notificacao").hidden = false; timer = setTimeout(() => { $("notificacao").hidden = true; }, 6500); }
   function abrir(id) { focos.set(id, document.activeElement); $(id).showModal(); }
