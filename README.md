@@ -2,74 +2,127 @@
 
 **Projeto Integrador II — Análise e Desenvolvimento de Sistemas (2026)**
 
-Sistema acadêmico de controle da capacidade e do movimento de veículos em estacionamento universitário. O operador consulta quantas vagas estão disponíveis, cadastra pessoas e veículos, registra entradas e saídas e consulta históricos e relatórios.
+Sistema acadêmico para controlar a capacidade e as movimentações de veículos em um estacionamento universitário. O operador pode cadastrar pessoas e veículos, registrar entradas e saídas, consultar o histórico e acompanhar a ocupação e os relatórios.
 
-O sistema **não define vagas individuais nem escalas de uso**. O motorista escolhe onde estacionar. A aplicação não opera uma cancela física e não oferece previsão garantida de lotação.
+O sistema **não utiliza vagas individuais nem escalas de estacionamento**. Também não realiza cobranças e não controla uma cancela física.
 
-## Tecnologias
+## Tecnologias utilizadas
 
-- Interface: HTML, CSS e JavaScript.
-- Servidor: Python com Flask.
-- Banco de dados: PostgreSQL, acessado pelo Python por meio do pg8000.
-- Ferramentas de desenvolvimento: VS Code, pgAdmin, Git e GitHub.
+- **HTML e CSS:** estrutura e aparência das telas.
+- **JavaScript:** formulários, interações e comunicação com o servidor.
+- **Python e Flask:** autenticação e regras do sistema.
+- **PostgreSQL:** armazenamento dos cadastros e das movimentações.
+- **pg8000:** conexão entre Python e PostgreSQL.
 
-## Organização
+## Estrutura do projeto
 
-| Pasta / arquivo | Para que serve |
-|---|---|
-| `frontend/index.html` | Telas e formulários. |
-| `frontend/style.css` | Aparência e adaptação da interface. |
-| `frontend/script.js` | Interações, máscaras, comunicação com a API e indicadores. |
+| Caminho | Finalidade |
+| --- | --- |
+| `frontend/index.html` | Telas do sistema. |
+| `frontend/style.css` | Estilos da interface. |
+| `frontend/script.js` | Interações e comunicação com a API. |
 | `backend/app.py` | Inicialização do Flask, login e sessões. |
-| `backend/cadastros.py` | Cadastros de pessoas e veículos. |
-| `backend/movimentacoes.py` | Entradas, saídas e capacidade. |
-| `backend/db.py` | Conexão com PostgreSQL. |
-| `backend/tabelas.sql` | Estrutura das tabelas em um banco novo. |
-| `documentos/` | Word e cronograma revisados. |
-| `orientacoes/` | Instruções de entrega e roteiro do vídeo. |
+| `backend/cadastros.py` | Cadastro de pessoas e veículos. |
+| `backend/movimentacoes.py` | Entradas, saídas, capacidade e dias conferidos. |
+| `backend/db.py` | Conexão com o PostgreSQL. |
+| `backend/requirements.txt` | Bibliotecas Python utilizadas. |
+| `database/tabelas.sql` | Criação das tabelas do banco de dados. |
 
-## Como executar no computador da equipe
+Os documentos acadêmicos, como o relatório e o cronograma, são mantidos separadamente do código publicado no GitHub.
 
-1. Ter Python e PostgreSQL instalados. Manter o banco de desenvolvimento existente se já funciona.
-2. Manter `backend/.env` somente no computador, com as credenciais **locais**. Existe um exemplo sem senhas em `backend/.env.example`.
-3. Na raiz da pasta do projeto, com um ambiente virtual ativo, instalar as bibliotecas:
+## Como executar
 
-   ```bash
-   pip install -r backend/requirements.txt
-   ```
+### 1. Preparar o ambiente
 
-4. Iniciar o servidor:
+É necessário ter Python e PostgreSQL instalados.
 
-   ```bash
-   python backend/app.py
-   ```
+Abra um terminal na pasta principal do projeto e crie o ambiente virtual, caso ele ainda não exista:
 
-5. Abrir `http://127.0.0.1:5000` e entrar com uma conta de operador já criada.
-
-**Atenção ao banco:** `backend/tabelas.sql` é somente para criar tabelas em um banco **novo**. Não o execute sobre o banco que já contém suas informações. O arquivo `backend/inicializar_estacionamento.sql` só insere a capacidade de teste de 50 vagas se ainda não existir configuração, sem alterar a atual.
-
-## Regras da ocupação
-
-- Ocupação: acessos que ainda não têm horário de saída.
-- Vagas livres: capacidade total menos ocupação.
-- Entrada de placa já presente ou com estacionamento lotado é recusada.
-- Saída registra horário no acesso existente, preservando o histórico.
-- Uma pessoa pode possuir vários veículos, mas a inativação não exclui seu histórico.
-
-## Testes e limites
-
-O grupo relatou funcionamento local de login, cadastro, movimentações e teste de lotação. A revisão contém testes de regras de JavaScript:
-
-```bash
-node --test tests/regras.test.js
+```powershell
+python -m venv .venv
 ```
 
-Ainda faltam evidências de testes de concorrência com dois operadores no PostgreSQL e validação dos relatórios com vários dias completos. Consulte `docs/ROTEIRO_TESTES.md`.
+No PowerShell, ative o ambiente:
 
-## Integrantes
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
 
-Victor Gabriel Philemon John Marie; Luiz Fernando Silva do Amaral; José Paxe Manuel; Felipe Gabriel Silva Campos de Souza; Samara Bruna de Oliveira Souza.
+Instale as bibliotecas:
 
-## Segurança
+```powershell
+pip install -r backend/requirements.txt
+```
 
-Não suba ao GitHub o arquivo `.env`, senhas, chaves secretas ou dados pessoais. O arquivo `.gitignore` já inclui o `.env`. Consulte `LEIA_PRIMEIRO.md` antes de copiar arquivos ou fazer o commit.
+### 2. Preparar o banco de dados
+
+No pgAdmin, crie um banco de dados para o projeto. **Somente em um banco novo e vazio**, abra a ferramenta de consultas e execute o conteúdo de `database/tabelas.sql` para criar as tabelas.
+
+Depois, no mesmo banco novo, registre a capacidade inicial:
+
+```sql
+INSERT INTO estacionamento (id_estacionamento, capacidade_total)
+VALUES (1, 50)
+ON CONFLICT (id_estacionamento) DO NOTHING;
+```
+
+É necessário também criar pelo menos um operador ativo, com senha armazenada como hash, para acessar o sistema. O projeto possui um arquivo de apoio para criação de operadores na pasta `backend`; confira suas instruções antes de executá-lo.
+
+**Não execute o script de criação das tabelas sobre um banco já utilizado**, pois ele não é um procedimento de atualização de bancos existentes.
+
+### 3. Configurar a conexão
+
+Crie o arquivo `backend/.env` com as configurações locais. Ele deve conter as variáveis:
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+- `SECRET_KEY` (chave secreta aleatória de pelo menos 32 caracteres)
+
+As informações devem corresponder ao seu PostgreSQL. Não compartilhe o conteúdo desse arquivo e não o envie ao GitHub.
+
+### 4. Iniciar o sistema
+
+Com o ambiente virtual ativado, execute:
+
+```powershell
+python backend/app.py
+```
+
+Abra `http://127.0.0.1:5000/` no navegador e entre com um operador ativo.
+
+## Funcionalidades
+
+- Login e verificação da sessão do operador.
+- Cadastro e consulta de pessoas e veículos.
+- Associação de vários veículos à mesma pessoa.
+- Inativação de cadastros sem apagar o histórico.
+- Registro de entrada e saída de veículos.
+- Controle de capacidade, com recusa de entradas quando o estacionamento está lotado.
+- Histórico de movimentações com filtros.
+- Consulta do fluxo por dia da semana a partir de dias completos conferidos.
+
+## Regras de ocupação
+
+- **Veículos presentes:** quantidade de entradas sem horário de saída.
+- **Vagas disponíveis:** capacidade total menos veículos presentes.
+- O sistema impede uma segunda entrada aberta para a mesma placa.
+- A saída encerra a movimentação, sem excluir seu histórico.
+- Os relatórios distinguem dias sem dados de dias conferidos sem movimento.
+
+## Testes realizados
+
+Nos testes locais, foram verificados o funcionamento da conexão com o PostgreSQL, as movimentações, a atualização do painel e os cálculos dos relatórios.
+
+Também foi realizado um teste com **duas solicitações de entrada iniciadas em paralelo**, usando o cliente de testes do Flask e o banco `estacionamento_teste`. Com apenas uma vaga livre, uma solicitação foi aceita (HTTP 201), a outra foi recusada (HTTP 409) e a ocupação final permaneceu dentro da capacidade. O resultado foi conferido diretamente no PostgreSQL.
+
+Esse é o resultado do cenário testado; ele não substitui testes adicionais em um servidor utilizado por vários operadores.
+
+## Segurança e cuidados
+
+- O arquivo `backend/.env` e a pasta `.venv/` não devem ser publicados no GitHub.
+- Documentos acadêmicos e dados pessoais devem ser compartilhados apenas pelos canais definidos pela equipe e pelo professor.
+- Utilize o banco de testes para experimentos e preserve o banco principal.
+- Os scripts antigos da pasta `database/legado/` não representam a estrutura atual do sistema e não devem ser executados no banco em uso.
